@@ -142,20 +142,23 @@ class ImportPostController extends Controller
                 $ip->media = $c->map(function ($m) {
                     return [
                         'uri' => $m['uri'],
-                        'title' => $this->formatHashtags($m['title'] ?? ''),
                         'creation_timestamp' => $m['creation_timestamp'] ?? null,
+                        'caption' => $m['alt'] ?? '',
+                        'is_nsfw' => $m['is_nsfw'] ?? false,
                     ];
                 })->toArray();
 
-                $ip->caption = $c->count() > 1 ?
-                    $this->formatHashtags($file['title'] ?? '') :
-                    $this->formatHashtags($ip->media[0]['title'] ?? '');
+                $ip->caption = $this->formatHashtags($file['caption'] ?? '');
 
                 $originalFilename = last(explode('/', $ip->media[0]['uri'] ?? ''));
                 $ip->filename = $this->sanitizeFilename($originalFilename);
 
-                $ip->metadata = $c->map(function ($m) {
+                $ip->metadata = $c->map(function ($m) use ($file) {
                     return [
+                        'visibility' => $file['visibility'] ?? 'public',
+                        'cw_summary' => $file['cw_summary'] ?? '',
+                        'is_nsfw' => (bool) ($file['is_nsfw'] ?? false),
+                        'comments_disabled' => (bool) ($file['comments_disabled'] ?? false),
                         'uri' => $m['uri'],
                         'media_metadata' => isset($m['media_metadata']) ? $m['media_metadata'] : null,
                     ];

@@ -149,6 +149,8 @@ class TransformImports extends Command
                     'media_path' => $np,
                     'mime' => $mime,
                     'size' => $size,
+                    'is_nsfw' => $ipm['is_nsfw'] ?? false,
+                    'caption' => $ipm['caption'] ?? '',
                 ];
             }
 
@@ -168,12 +170,26 @@ class TransformImports extends Command
 
                     $statusId = $uniqueIdData['status_id'];
 
+                    $firstMeta = collect($ip->metadata)->first();
+                    $visibility = data_get($firstMeta, 'visibility', 'public');
+                    if (! in_array($visibility, ['public', 'private', 'unlisted'])) {
+                        $visibility = 'public';
+                    }
+
+                    \Log::info('IG import media mapped', [
+                        'ip' => $ip,
+                    ]);
+
                     $status = new Status;
                     $status->profile_id = $pid;
                     $status->caption = $caption;
                     $status->type = $ip->post_type;
-                    $status->scope = 'public';
-                    $status->visibility = 'public';
+                    $status->scope = $visibility;
+                    $status->visibility = $visibility;
+                    $status->cw_summary = data_get($firstMeta, 'cw_summary', '');
+                    $status->is_nsfw = data_get($firstMeta, 'is_nsfw', false);
+                    $status->comments_disabled = data_get($firstMeta, 'comments_disabled', false);
+
                     $status->id = $statusId;
                     $status->created_at = now()->parse($ip->creation_date);
                     $status->saveQuietly();
@@ -186,6 +202,8 @@ class TransformImports extends Command
                         $media->media_path = $mediaData['media_path'];
                         $media->mime = $mediaData['mime'];
                         $media->size = $mediaData['size'];
+                        $media->is_nsfw = $mediaData['is_nsfw'];
+                        $media->caption = $mediaData['caption'];
                         $media->save();
                     }
 

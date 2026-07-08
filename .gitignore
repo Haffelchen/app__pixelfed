@@ -31,3 +31,6 @@
 # Exceptions - these *MUST* be last
 !/bootstrap/cache/.gitignore
 !/public/vendor/horizon/.gitignore
+
+.env
+docker-compose.dev.yml

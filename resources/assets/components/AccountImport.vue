@@ -210,7 +210,7 @@
                         </template>
                         <div class="list-group-item">
                             <p class="small text-muted">Caption</p>
-                            <p class="mb-0 small read-more" style="font-size: 12px;overflow-y: hidden;">{{ media.title ? media.title : modalData.title }}</p>
+                            <p class="mb-0 small read-more" style="font-size: 12px;overflow-y: hidden;">{{ modalData.caption }}</p>
                         </div>
                         <div class="list-group-item">
                             <div class="d-flex justify-content-between align-items-center">
@@ -304,7 +304,7 @@
                 event.currentTarget.blur();
                 swal({
                     title: 'Upload Archive',
-                    icon: 'success',
+                    icon: 'info',
                     text: 'The .zip archive is probably named something like username_20230606.zip, and was downloaded from the Instagram.com website.',
                     buttons: {
                         cancel: "Cancel",
@@ -537,9 +537,11 @@
             handleImport() {
                 swal('Importing...', "Please wait while we upload your imported posts.\n Keep this page open and do not navigate away.", 'success');
                 this.importButtonLoading = true;
+
                 let ic = this.imageCache.filter(e => {
                     return this.selectedMedia.indexOf(e.filename) != -1;
                 })
+
                 let chunks = this.sliceIntoChunks(ic, 10);
                 chunks.forEach(c => {
                     let formData = new FormData();
@@ -566,23 +568,7 @@
                     });
                 })
                 axios.post('/api/local/import/ig', {
-                    files: this.postMeta.filter(e => this.selectedMedia.includes(e.media[0].uri)).map(e => {
-                        if(e.hasOwnProperty('title')) {
-                            return {
-                                title: e.title,
-                                'creation_timestamp': e.creation_timestamp,
-                                uri: e.uri,
-                                media: e.media
-                            }
-                        } else {
-                            return {
-                                title: null,
-                                'creation_timestamp': null,
-                                uri: null,
-                                media: e.media
-                            }
-                        }
-                    })
+                    files: this.postMeta.filter(e => this.selectedMedia.includes(e.media[0].uri))
                 }).then(res => {
                     if(res) {
                         setTimeout(() => {
